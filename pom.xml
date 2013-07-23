@@ -2,11 +2,14 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.omidbiz.sample</groupId>
-	<artifactId>hello</artifactId>
+	<artifactId>jarplugin</artifactId>
 	<packaging>maven-plugin</packaging>
 	<version>0.1</version>
-	<name>hello Maven Mojo</name>
-	<url>http://maven.apache.org</url>
+	<name>Maven Plugin Jar Resolver</name>
+	<url>http://omidbiz.com</url>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
 	<dependencies>
 		<dependency>
 			<groupId>org.apache.maven</groupId>
@@ -14,22 +17,33 @@
 			<version>3.0.3</version>
 		</dependency>
 		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>3.8.1</version>
-			<scope>test</scope>
-		</dependency>
-		<dependency>
 			<groupId>org.apache.maven.plugin-tools</groupId>
 			<artifactId>maven-plugin-annotations</artifactId>
 			<version>3.2</version>
+		</dependency>
+		<dependency>
+			<groupId>org.codehaus.plexus</groupId>
+			<artifactId>plexus-utils</artifactId>
+			<version>3.0.8</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.8.2</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
 			<groupId>com.jcabi</groupId>
 			<artifactId>jcabi-aether</artifactId>
 			<version>0.7.19</version>
 		</dependency>
+		<dependency>
+			<groupId>commons-io</groupId>
+			<artifactId>commons-io</artifactId>
+			<version>2.4</version>
+		</dependency>
 	</dependencies>
+
 	<build>
 		<plugins>
 			<plugin>
@@ -37,7 +51,7 @@
 				<artifactId>maven-plugin-plugin</artifactId>
 				<version>3.2</version>
 				<configuration>
-					<!-- see http://jira.codehaus.org/browse/MNG-5346 -->
+					<goalPrefix>resolve</goalPrefix>
 					<skipErrorNoDescriptorsFound>true</skipErrorNoDescriptorsFound>
 				</configuration>
 				<executions>
@@ -47,8 +61,54 @@
 							<goal>descriptor</goal>
 						</goals>
 					</execution>
+					<execution>
+						<id>help-goal</id>
+						<goals>
+							<goal>helpmojo</goal>
+						</goals>
+					</execution>
 				</executions>
 			</plugin>
 		</plugins>
 	</build>
+	<profiles>
+		<profile>
+			<id>run-its</id>
+			<build>
+
+				<plugins>
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+						<artifactId>maven-invoker-plugin</artifactId>
+						<version>1.7</version>
+						<configuration>
+							<debug>true</debug>
+							<cloneProjectsTo>${project.build.directory}/it</cloneProjectsTo>
+							<pomIncludes>
+								<pomInclude>*/pom.xml</pomInclude>
+							</pomIncludes>
+							<postBuildHookScript>verify</postBuildHookScript>
+							<localRepositoryPath>${project.build.directory}/local-repo</localRepositoryPath>
+							<settingsFile>src/it/settings.xml</settingsFile>
+							<goals>
+								<goal>clean</goal>
+								<goal>test-compile</goal>
+							</goals>
+						</configuration>
+						<executions>
+							<execution>
+								<id>integration-test</id>
+								<goals>
+									<goal>install</goal>
+									<goal>integration-test</goal>
+									<goal>verify</goal>
+								</goals>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+
+			</build>
+		</profile>
+	</profiles>
 </project>
